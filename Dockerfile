@@ -1,6 +1,6 @@
-#
-# RcloneBrowser Dockerfile
-#
+##
+## RcloneBrowser Dockerfile (legacy Qt)
+##
 
 FROM jlesage/baseimage-gui:alpine-3.21-v4
 
@@ -39,7 +39,6 @@ RUN apk -U upgrade --no-cache && \
     && unzip /tmp/rclone-${RCLONE_VERSION}-linux-${ARCH}.zip \
     && mv /tmp/rclone-*-linux-${ARCH}/rclone /usr/bin \
     && rm -r /tmp/rclone* && \
-
     apk add --no-cache --virtual=build-dependencies \
         build-base \
         cmake \
@@ -47,8 +46,7 @@ RUN apk -U upgrade --no-cache && \
         gcc \
         git \
         qt5-qtbase qt5-qtmultimedia-dev qt5-qttools-dev && \
-
-# Compile RcloneBrowser
+    # Compile RcloneBrowser \
     git clone https://github.com/Alkl58/RcloneBrowser.git /tmp && \
     mkdir /tmp/build && \
     cd /tmp/build && \
@@ -56,15 +54,9 @@ RUN apk -U upgrade --no-cache && \
     cmake --build . && \
     ls -l /tmp/build && \
     cp /tmp/build/build/rclone-browser /usr/bin  && \
-
-    # cleanup
-     apk del --purge build-dependencies && \
+    # cleanup \
+    apk del --purge build-dependencies && \
     rm -rf /tmp/*
-
-# Maximize only the main/initial window.
-#RUN \
-#    sed-patch 's/<application type="normal">/<application type="normal" title="Rclone Browser">/' \
-#        /etc/xdg/openbox/rc.xml
 
 # Generate and install favicons.
 RUN \

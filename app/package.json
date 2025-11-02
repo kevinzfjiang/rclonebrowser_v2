@@ -1,0 +1,41 @@
+{
+  "name": "rclonebrowser-v2",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Modern RcloneBrowser rewritten with Electron + React + TypeScript",
+  "main": "dist/main/index.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build": "npm run clean && npm run build:renderer && npm run build:main && npm run build:preload",
+    "build:preload": "tsc -p tsconfig.preload.json",
+    "start": "electron ./dist/main/index.js",
+    "dev": "concurrently -k \"vite\" \"npm:dev:main\"",
+    "dev:main": "tsx --watch src/main/index.ts"
+  },
+  "dependencies": {
+    "electron-store": "^9.0.0",
+    "execa": "^9.3.0",
+    "i18next": "^23.11.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^15.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@types/react": "^18.3.8",
+    "@types/react-dom": "^18.3.0",
+    "concurrently": "^9.0.1",
+    "electron": "^31.5.1",
+    "@vitejs/plugin-react": "^4.3.2",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.8",
+    "@mui/material": "^6.0.2",
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0"
+  }
+}

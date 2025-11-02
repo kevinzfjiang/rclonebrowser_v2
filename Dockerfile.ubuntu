@@ -1,0 +1,61 @@
+# RcloneBrowser v2 Dockerfile (Electron + React)
+
+# ---------- Builder: compile Electron app ----------
+FROM node:22-bookworm-slim AS builder
+WORKDIR /app
+COPY app/package.json app/tsconfig*.json app/vite.config.ts ./
+COPY app/src ./src
+RUN npm install && npm run build
+
+# ---------- Runtime: Ubuntu baseimage GUI ----------
+FROM jlesage/baseimage-gui:ubuntu-24.04-v4
+
+# Build args
+ARG RCLONE_VERSION=current
+ENV ARCH=amd64
+
+# Install runtime dependencies for Electron and rclone/fuse
+RUN add-pkg \
+      curl ca-certificates wget unzip \
+      fuse3 libfuse3-3 \
+      libasound2 libnss3 libxss1 libatk-bridge2.0-0 libx11-xcb1 libdrm2 libgbm1 libgtk-3-0 libnotify4 \
+      fonts-noto-color-emoji && \
+    update-ca-certificates
+
+# Install rclone
+WORKDIR /tmp
+RUN wget -q http://downloads.rclone.org/rclone-${RCLONE_VERSION}-linux-${ARCH}.zip && \
+    unzip rclone-${RCLONE_VERSION}-linux-${ARCH}.zip && \
+    mv rclone-*-linux-${ARCH}/rclone /usr/bin/rclone && \
+    rm -rf rclone*
+
+# Copy built Electron app
+RUN mkdir -p /opt/app
+COPY --from=builder /app/dist /opt/app/dist
+COPY --from=builder /app/node_modules /opt/app/node_modules
+
+# Generate and install favicons.
+RUN \
+    APP_ICON_URL=https://github.com/rclone/rclone/raw/master/graphics/logo/logo_symbol/logo_symbol_color_512px.png && \
+    install_app_icon.sh "$APP_ICON_URL"
+
+# Add files.
+COPY --chmod=755 rootfs/ /
+COPY VERSION /
+
+# Set environment variables.
+ENV APP_NAME="RcloneBrowser" \
+    S6_KILL_GRACETIME=8000 \
+    ELECTRON_DISABLE_SECURITY_WARNINGS=1
+
+# Define mountable directories.
+VOLUME ["/config"]
+VOLUME ["/media"]
+
+# Metadata.
+LABEL \
+      org.label-schema.name="rclonebrowser" \
+      org.label-schema.description="Docker container for RcloneBrowser v2 (Electron)" \
+      org.label-schema.version="unknown" \
+      org.label-schema.vcs-url="https://github.com/kevinzfjiang/rclonebrowser_v2" \
+      org.label-schema.schema-version="1.0"

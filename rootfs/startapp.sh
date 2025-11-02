@@ -30,9 +30,20 @@ is_rclonebrowser_running() {
 }
 
 start_rclonebrowser() {
-        dbus-uuidgen 
-        export TERMINAL=xterm
-	/usr/bin/rclone-browser > /config/logs/output.log 2>&1 & 
+    dbus-uuidgen >/dev/null 2>&1 || true
+    export TERMINAL=xterm
+    export HOME=/config
+    # Prefer Electron app if present.
+    if [ -x /opt/app/node_modules/electron/dist/electron ] && [ -f /opt/app/dist/main/index.js ]; then
+        log "Starting Electron RcloneBrowser v2..."
+        /opt/app/node_modules/electron/dist/electron /opt/app/dist/main/index.js > /config/logs/output.log 2>&1 &
+    elif [ -x /usr/bin/rclone-browser ]; then
+        log "Starting legacy RcloneBrowser..."
+        /usr/bin/rclone-browser > /config/logs/output.log 2>&1 &
+    else
+        log "ERROR: No application binary found."
+        exit 1
+    fi
 }
 
 kill_rclonebrowser() {
